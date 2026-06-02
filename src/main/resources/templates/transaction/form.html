@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 共通headフラグメントを引数 '新しく記録する' で呼び出す -->
+<head th:replace="~{fragments/layout :: head('新しく記録する')}"></head>
+
+<!-- 本文。下部ナビと重ならないよう下に余白を取る -->
+<body class="min-h-screen bg-gray-50 text-gray-800 font-sans pb-24">
+
+    <!-- 共通ヘッダー（フォーム画面では userName を渡さないので「ゲスト」表示でOK） -->
+    <header class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-4 py-4">
+            <h1 class="text-lg font-bold text-gray-800">新しく記録する</h1>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-3xl mx-auto p-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-8">
+
+            <!--
+              支出／収入の切り替えトグル
+              ※種類を切り替えるとカテゴリー選択肢も変わるため、リンクで画面を読み込み直す（?type=...）
+              　今選ばれている種類（transactionForm.type）に応じてボタンの色を変える
+            -->
+            <div class="flex p-1 bg-gray-100 rounded-xl mb-8">
+                <a th:href="@{/transactions/new(type='EXPENSE')}"
+                   class="flex-1 py-2 text-center text-sm font-bold rounded-lg"
+                   th:classappend="${transactionForm.type.name() == 'EXPENSE'} ? 'bg-white text-red-500 shadow-sm' : 'text-gray-500'">支出</a>
+                <a th:href="@{/transactions/new(type='INCOME')}"
+                   class="flex-1 py-2 text-center text-sm font-bold rounded-lg"
+                   th:classappend="${transactionForm.type.name() == 'INCOME'} ? 'bg-white text-emerald-500 shadow-sm' : 'text-gray-500'">収入</a>
+            </div>
+
+            <!--
+              記録フォーム本体
+              - th:action は POST /transactions（TransactionController が受け取る）
+              - th:object は TransactionForm に紐づく
+            -->
+            <form th:action="@{/transactions}" th:object="${transactionForm}" method="post" class="space-y-6">
+
+                <!-- フォーム全体エラー（種類不一致など）を表示する -->
+                <div th:replace="~{fragments/layout :: globalErrors}"></div>
+
+                <!-- 種類は hidden で送る（上のトグルで決まった値。画面では触らせない） -->
+                <input type="hidden" th:field="*{type}">
+
+                <!-- 日付 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">日付</label>
+                    <!-- type="date" は yyyy-MM-dd 形式。Form 側で @DateTimeFormat(ISO.DATE) を付けて受ける -->
+                    <input type="date" th:field="*{transactionDate}"
+                           class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div th:replace="~{fragments/layout :: fieldError('transactionDate')}"></div>
+                </div>
+
+                <!-- 金額 -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">金額</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">¥</span>
+                        <!-- type="number" / min="1"。Form の amount(Integer) に紐づく -->
+                        <input type="number" th:field="*{amount}" min="1" placeholder="0"
+                               class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xl font-bold">
+                    </div>
+                    <div th:replace="~{fragments/layout :: fieldError('amount')}"></div>
+                </div>
+
+                <!-- カテゴリー選択（ラジオボタンをボタン風に並べる） -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-bold text-gray-700">カテゴリー</label>
+                        <!-- カテゴリー編集画面への導線 -->
+                        <a th:href="@{/categories}" class="text-xs font-bold text-blue-500 hover:underline">編集</a>
+                    </div>
+                    <!-- カテゴリーが無いときの案内 -->
+                    <p th:if="${categories.isEmpty()}" class="text-sm text-gray-400">
+                        カテゴリーがありません。設定画面から追加してください。
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- 各カテゴリーを「選択できるボタン」にする -->
+                        <label th:each="c : ${categories}" class="cursor-pointer">
+                            <!--
+                              実体はラジオボタン（th:field="*{categoryId}"）。画面からは隠す(sr-only)。
+                              選択中のボタンだけ枠を青くするため peer / peer-checked を使う
+                            -->
+                            <input type="radio" th:field="*{categoryId}" th:value="${c.id}" class="peer sr-only">
+                            <div class="py-3 px-2 rounded-xl border text-sm font-bold text-center text-gray-600 bg-white border-gray-200
+                                        peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 peer-checked:ring-2 peer-checked:ring-blue-100">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <!-- カテゴリー色の丸 -->
+                                    <span class="w-3 h-3 rounded-full inline-block" th:style="'background-color:' + ${c.color}"></span>
+                                    <span th:text="${c.label}">食費</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div th:replace="~{fragments/layout :: fieldError('categoryId')}"></div>
+                </div>
+
+                <!-- メモ（任意） -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">メモ（任意）</label>
+                    <input type="text" th:field="*{memo}" placeholder="例: スーパーでの買い物"
+                           class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div th:replace="~{fragments/layout :: fieldError('memo')}"></div>
+                </div>
+
+                <!-- 送信ボタン -->
+                <button type="submit"
+                        class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md transition-all">
+                    記録する
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- 下部ナビ（現在地は add） -->
+    <nav th:replace="~{fragments/layout :: bottomNav('add')}"></nav>
+</body>
+</html>

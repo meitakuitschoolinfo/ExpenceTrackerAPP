@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する（th:〇〇 属性を使うため） -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 共通headフラグメントを引数 'ログイン' で呼び出して差し込む -->
+<head th:replace="~{fragments/layout :: head('ログイン')}"></head>
+
+<!-- ログイン画面の背景（薄いグレー）。中央寄せ -->
+<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+
+    <!-- 中央の白いカード -->
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12">
+
+        <!-- 見出しブロック -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">💰</div>
+            <h1 class="text-2xl font-bold text-gray-800">スマート家計簿</h1>
+            <p class="text-gray-500 mt-2 text-sm">おかえりなさい！ログインしてください。</p>
+        </div>
+
+        <!-- 登録完了などのフラッシュメッセージを表示する -->
+        <div th:replace="~{fragments/layout :: flash}"></div>
+
+        <!--
+          ログインフォーム本体
+          - th:action は Spring Security の標準処理 /login へ POST する
+          - th:object は LoginController が入れた空の LoginForm と紐づく
+          - method="post" にすると Thymeleaf+SpringSecurity が CSRF トークンを自動挿入する
+        -->
+        <form th:action="@{/login}" th:object="${loginForm}" method="post" class="space-y-5">
+
+            <!-- 認証失敗時のエラー表示（Spring Security が ?error を付けてリダイレクトしてくる） -->
+            <div th:if="${param.error}" class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                メールアドレスまたはパスワードが間違っています
+            </div>
+            <!-- ログアウト直後のメッセージ表示（?logout が付いた時） -->
+            <div th:if="${param.logout}" class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+                ログアウトしました
+            </div>
+
+            <!-- メールアドレス入力 -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">メールアドレス</label>
+                <!-- th:field="*{email}" が name="email" / id / value を自動生成する（Form の email と一致） -->
+                <input type="email" th:field="*{email}" placeholder="mail@example.com"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <!-- email 項目のバリデーションエラー表示 -->
+                <div th:replace="~{fragments/layout :: fieldError('email')}"></div>
+            </div>
+
+            <!-- パスワード入力 -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">パスワード</label>
+                <!-- th:field="*{password}" は LoginForm.password と紐づく -->
+                <input type="password" th:field="*{password}" placeholder="••••••••"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <!-- password 項目のバリデーションエラー表示 -->
+                <div th:replace="~{fragments/layout :: fieldError('password')}"></div>
+            </div>
+
+            <!-- 送信ボタン -->
+            <button type="submit"
+                    class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md transition-all">
+                ログイン
+            </button>
+        </form>
+
+        <!-- 新規登録への導線 -->
+        <div class="mt-8 text-center">
+            <a th:href="@{/register}" class="text-sm font-medium text-blue-600 hover:underline">新規登録はこちら</a>
+        </div>
+    </div>
+</body>
+</html>

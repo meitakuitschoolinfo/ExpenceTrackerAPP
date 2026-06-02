@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 共通headフラグメントを引数 'カテゴリーの管理' で呼び出す -->
+<head th:replace="~{fragments/layout :: head('カテゴリーの管理')}"></head>
+
+<!-- 本文。下部ナビと重ならないよう下に余白を取る -->
+<body class="min-h-screen bg-gray-50 text-gray-800 font-sans pb-24">
+
+    <!-- 共通ヘッダー -->
+    <header th:replace="~{fragments/layout :: appHeader(${userName})}"></header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-3xl mx-auto p-4 space-y-6">
+
+        <!-- 削除結果などのフラッシュメッセージ -->
+        <div th:replace="~{fragments/layout :: flash}"></div>
+
+        <h2 class="text-xl font-bold text-gray-800">カテゴリーの管理</h2>
+
+        <!-- 支出カテゴリーのカード -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-700">支出カテゴリー</h3>
+                <!-- 支出カテゴリーの新規追加リンク（?type=EXPENSE を付ける） -->
+                <a th:href="@{/categories/new(type='EXPENSE')}"
+                   class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">＋ 追加</a>
+            </div>
+            <!-- 支出カテゴリーを1件ずつ表示する -->
+            <div class="space-y-2">
+                <!-- expenseCategories の各要素 cat をループ -->
+                <div th:each="cat : ${expenseCategories}"
+                     class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <!-- カテゴリー色の丸 -->
+                        <div class="w-8 h-8 rounded-full" th:style="'background-color:' + ${cat.color}"></div>
+                        <span class="font-bold text-gray-700" th:text="${cat.label}">食費</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <!-- 編集リンク -->
+                        <a th:href="@{/categories/{id}/edit(id=${cat.id})}"
+                           class="px-3 py-1.5 text-xs font-bold text-blue-500 hover:bg-blue-50 rounded-lg">編集</a>
+                        <!-- 削除フォーム（★POST★／CSRF自動挿入／confirm） -->
+                        <form th:action="@{/categories/{id}/delete(id=${cat.id})}" method="post"
+                              onsubmit="return confirm('このカテゴリーを削除しますか？');">
+                            <button type="submit" class="px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg">削除</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 収入カテゴリーのカード -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-700">収入カテゴリー</h3>
+                <!-- 収入カテゴリーの新規追加リンク（?type=INCOME を付ける） -->
+                <a th:href="@{/categories/new(type='INCOME')}"
+                   class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">＋ 追加</a>
+            </div>
+            <div class="space-y-2">
+                <div th:each="cat : ${incomeCategories}"
+                     class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full" th:style="'background-color:' + ${cat.color}"></div>
+                        <span class="font-bold text-gray-700" th:text="${cat.label}">給与</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <a th:href="@{/categories/{id}/edit(id=${cat.id})}"
+                           class="px-3 py-1.5 text-xs font-bold text-blue-500 hover:bg-blue-50 rounded-lg">編集</a>
+                        <form th:action="@{/categories/{id}/delete(id=${cat.id})}" method="post"
+                              onsubmit="return confirm('このカテゴリーを削除しますか？');">
+                            <button type="submit" class="px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg">削除</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 下部ナビ（現在地は settings） -->
+    <nav th:replace="~{fragments/layout :: bottomNav('settings')}"></nav>
+</body>
+</html>

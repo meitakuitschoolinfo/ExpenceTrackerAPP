@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 共通headフラグメントを引数 '新規登録' で呼び出す -->
+<head th:replace="~{fragments/layout :: head('新規登録')}"></head>
+
+<!-- 背景はログイン画面と同じ -->
+<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans">
+
+    <!-- 中央のカード -->
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12">
+
+        <!-- 見出しブロック -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">💰</div>
+            <h1 class="text-2xl font-bold text-gray-800">新規登録</h1>
+            <p class="text-gray-500 mt-2 text-sm">新しいアカウントを作成して始めましょう。</p>
+        </div>
+
+        <!--
+          登録フォーム本体
+          - th:action は POST /register に送る（UserRegisterController が受け取る）
+          - th:object は UserRegisterForm に紐づく
+        -->
+        <form th:action="@{/register}" th:object="${userRegisterForm}" method="post" class="space-y-5">
+
+            <!-- フォーム全体エラー（メール重複など）を表示する -->
+            <div th:replace="~{fragments/layout :: globalErrors}"></div>
+
+            <!-- ユーザー名 -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">ユーザー名</label>
+                <!-- th:field="*{name}" は UserRegisterForm.name と紐づく -->
+                <input type="text" th:field="*{name}" placeholder="例: 太郎"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <div th:replace="~{fragments/layout :: fieldError('name')}"></div>
+            </div>
+
+            <!-- メールアドレス -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">メールアドレス</label>
+                <!-- th:field="*{email}" は UserRegisterForm.email と紐づく -->
+                <input type="email" th:field="*{email}" placeholder="mail@example.com"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <div th:replace="~{fragments/layout :: fieldError('email')}"></div>
+            </div>
+
+            <!-- パスワード -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">パスワード（6文字以上）</label>
+                <!-- th:field="*{password}" は UserRegisterForm.password と紐づく（生パスワード→Service側でハッシュ化） -->
+                <input type="password" th:field="*{password}" placeholder="••••••••"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <div th:replace="~{fragments/layout :: fieldError('password')}"></div>
+            </div>
+
+            <!-- 送信ボタン -->
+            <button type="submit"
+                    class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-md transition-all">
+                登録して始める
+            </button>
+        </form>
+
+        <!-- ログインへの導線 -->
+        <div class="mt-8 text-center">
+            <a th:href="@{/login}" class="text-sm font-medium text-blue-600 hover:underline">
+                既にアカウントをお持ちの方はこちら（ログイン）
+            </a>
+        </div>
+    </div>
+</body>
+</html>

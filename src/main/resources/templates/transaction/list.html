@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 共通headフラグメントを引数 '履歴' で呼び出す -->
+<head th:replace="~{fragments/layout :: head('履歴')}"></head>
+
+<!-- 本文。下部ナビと重ならないよう下に余白を取る -->
+<body class="min-h-screen bg-gray-50 text-gray-800 font-sans pb-24">
+
+    <!-- 共通ヘッダー -->
+    <header th:replace="~{fragments/layout :: appHeader(${userName})}"></header>
+
+    <!-- メインコンテンツ -->
+    <main class="max-w-3xl mx-auto p-4 space-y-4">
+
+        <!-- 月の選択ドロップダウン -->
+        <form method="get" th:action="@{/transactions}" class="flex justify-end">
+            <select name="month" onchange="this.form.submit()"
+                    class="bg-white border border-gray-200 text-sm font-bold text-gray-700 rounded-xl px-3 py-2">
+                <option th:each="m : ${availableMonths}" th:value="${m}"
+                        th:text="${#strings.substring(m,0,4)} + '年' + ${T(java.lang.Integer).parseInt(#strings.substring(m,5,7))} + '月'"
+                        th:selected="${m == selectedMonth}">2026年6月</option>
+            </select>
+        </form>
+
+        <!-- 削除成功などのフラッシュメッセージ -->
+        <div th:replace="~{fragments/layout :: flash}"></div>
+
+        <!-- 履歴の見出し -->
+        <h2 class="text-xl font-bold text-gray-800">記録の履歴</h2>
+
+        <!-- 記録が無いときのメッセージ -->
+        <div th:if="${transactions.isEmpty()}"
+             class="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <p class="text-gray-700 font-bold mb-1">記録がありません</p>
+            <p class="text-gray-500 text-sm">この月のデータはまだ登録されていません。</p>
+        </div>
+
+        <!-- 記録一覧（1件ずつカード行で表示する） -->
+        <div th:unless="${transactions.isEmpty()}"
+             class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+            <!-- transactions の各要素 tx をループする -->
+            <div th:each="tx : ${transactions}" class="p-4 flex items-center justify-between">
+                <!-- 左側：カテゴリーアイコン＋名前＋日付＋メモ -->
+                <div class="flex items-center gap-4">
+                    <!-- カテゴリー色の丸アイコン。中にカテゴリー名の先頭1文字を出す -->
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
+                         th:style="'background-color:' + ${tx.category.color}"
+                         th:text="${#strings.substring(tx.category.label,0,1)}">食</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <!-- カテゴリー名 -->
+                            <span class="font-bold text-gray-800" th:text="${tx.category.label}">食費</span>
+                            <!-- 取引日（yyyy-MM-dd 形式の日付をそのまま表示） -->
+                            <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md"
+                                  th:text="${#temporals.format(tx.transactionDate, 'yyyy/MM/dd')}">2026/06/01</span>
+                        </div>
+                        <!-- メモ（あるときだけ表示） -->
+                        <p th:if="${tx.memo}" class="text-sm text-gray-500 mt-0.5" th:text="${tx.memo}">メモ</p>
+                    </div>
+                </div>
+                <!-- 右側：金額＋削除ボタン -->
+                <div class="flex items-center gap-3">
+                    <!-- 収入なら緑＆先頭に+、支出なら黒。金額は3桁区切り -->
+                    <span class="font-bold text-lg"
+                          th:classappend="${tx.type.name() == 'INCOME'} ? 'text-emerald-500' : 'text-gray-800'"
+                          th:text="(${tx.type.name() == 'INCOME'} ? '+' : '') + '¥' + ${#numbers.formatInteger(tx.amount, 0, 'COMMA')}">¥0</span>
+                    <!--
+                      削除フォーム（★削除は必ず POST★）
+                      - th:action なので CSRF トークンが自動挿入される
+                      - month を hidden で送り、削除後に同じ月の一覧へ戻れるようにする
+                      - onsubmit の confirm で誤操作を防ぐ
+                    -->
+                    <form th:action="@{/transactions/{id}/delete(id=${tx.id})}" method="post"
+                          onsubmit="return confirm('この記録を削除しますか？');">
+                        <input type="hidden" name="month" th:value="${selectedMonth}">
+                        <button type="submit" class="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl">🗑</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 下部ナビ（現在地は list） -->
+    <nav th:replace="~{fragments/layout :: bottomNav('list')}"></nav>
+</body>
+</html>

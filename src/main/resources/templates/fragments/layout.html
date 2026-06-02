@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間（xmlns:th）を宣言し、th:〇〇 属性を使えるようにする -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+  共通headフラグメント
+  使い方： 各HTMLの <head> で  th:replace="~{fragments/layout :: head('画面タイトル')}"
+  引数 title はブラウザのタブに表示される文字列になる
+-->
+<head th:fragment="head(title)">
+    <!-- ページ全体の文字コードをUTF-8に指定する -->
+    <meta charset="UTF-8">
+    <!-- スマホ等でも幅が崩れないようにviewportを設定する -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSRFトークンをmetaに埋め込む（JSからのリクエスト用。Spring Securityが自動で値を入れる） -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+    <!-- ブラウザのタブに表示されるタイトル。引数 title が入る -->
+    <title th:text="${title} + ' | スマート家計簿'">スマート家計簿</title>
+    <!-- Tailwind CSS を CDN で読み込む（学習・開発用。本番ではビルド版を使う） -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<!--
+  汎用：項目別エラー表示フラグメント
+  使い方： <div th:replace="~{fragments/layout :: fieldError('label')}"></div>
+  引数 fieldName のバリデーションエラーがあれば赤字で表示する
+-->
+<div th:fragment="fieldError(fieldName)" th:if="${#fields.hasErrors(fieldName)}"
+     class="mt-1 text-sm text-red-600"
+     th:errors="*{__${fieldName}__}">
+    エラーメッセージがここに表示される
+</div>
+
+<!--
+  フォーム全体エラー表示フラグメント
+  使い方： <div th:replace="~{fragments/layout :: globalErrors}"></div>
+  bindingResult.reject(...) で登録されたフォーム全体のエラー（例：重複）を表示する
+-->
+<div th:fragment="globalErrors" th:if="${#fields.hasGlobalErrors()}"
+     class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">エラーメッセージ</p>
+</div>
+
+<!--
+  フラッシュメッセージ表示フラグメント
+  使い方： <div th:replace="~{fragments/layout :: flash}"></div>
+  Controller の RedirectAttributes.addFlashAttribute("message"/"errorMessage", ...) を表示する
+-->
+<div th:fragment="flash">
+    <!-- 成功メッセージ：緑色のバナー（message があるときだけ表示） -->
+    <div th:if="${message}"
+         class="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-medium"
+         th:text="${message}">成功メッセージ</div>
+    <!-- エラーメッセージ：赤色のバナー（errorMessage があるときだけ表示） -->
+    <div th:if="${errorMessage}"
+         class="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 font-medium"
+         th:text="${errorMessage}">エラーメッセージ</div>
+</div>
+
+<!--
+  下部ナビゲーション（ログイン後の全画面で共通）
+  使い方： <nav th:replace="~{fragments/layout :: bottomNav('dashboard')}"></nav>
+  引数 active には 'dashboard' / 'list' / 'add' / 'settings' のどれかを渡し、
+  現在のタブだけ色を変える（選択中の見た目）
+-->
+<nav th:fragment="bottomNav(active)"
+     class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+    <div class="max-w-3xl mx-auto px-2">
+        <div class="flex justify-around items-center h-16">
+            <!-- ホーム（ダッシュボード）へのリンク。active が 'dashboard' のとき青くする -->
+            <a th:href="@{/dashboard}"
+               th:classappend="${active == 'dashboard'} ? 'text-blue-600' : 'text-gray-400'"
+               class="flex flex-col items-center justify-center w-full h-full gap-1">
+                <span class="text-xl">🏠</span>
+                <span class="text-[10px] font-bold">ホーム</span>
+            </a>
+            <!-- 履歴一覧へのリンク -->
+            <a th:href="@{/transactions}"
+               th:classappend="${active == 'list'} ? 'text-blue-600' : 'text-gray-400'"
+               class="flex flex-col items-center justify-center w-full h-full gap-1">
+                <span class="text-xl">📋</span>
+                <span class="text-[10px] font-bold">履歴</span>
+            </a>
+            <!-- 新規記録へのリンク（中央の大きな＋ボタン） -->
+            <a th:href="@{/transactions/new}"
+               class="flex items-center justify-center -mt-6 w-14 h-14 rounded-full bg-blue-600 text-white text-3xl shadow-lg shadow-blue-500/30">
+                ＋
+            </a>
+            <!-- カテゴリー設定へのリンク -->
+            <a th:href="@{/categories}"
+               th:classappend="${active == 'settings'} ? 'text-blue-600' : 'text-gray-400'"
+               class="flex flex-col items-center justify-center w-full h-full gap-1">
+                <span class="text-xl">⚙️</span>
+                <span class="text-[10px] font-bold">設定</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!--
+  共通ヘッダー（ログイン後の全画面で共通）
+  使い方： <header th:replace="~{fragments/layout :: appHeader(${userName})}"></header>
+  引数 userName にはログイン中の利用者名を渡す
+-->
+<header th:fragment="appHeader(userName)"
+        class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex justify-between items-center">
+        <!-- 左側：利用者名 -->
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold">👤</div>
+            <div class="flex flex-col">
+                <span class="text-[10px] text-gray-400 font-bold tracking-wider">ACCOUNT</span>
+                <h1 class="text-sm font-bold text-gray-800 leading-tight">
+                    <span th:text="${userName}">ゲスト</span> さん
+                </h1>
+            </div>
+        </div>
+        <!-- 右側：ログアウトボタン（POSTフォーム。th:action なのでCSRFトークンが自動挿入される） -->
+        <form th:action="@{/logout}" method="post">
+            <button type="submit"
+                    class="px-3 py-2 text-sm font-bold text-gray-400 hover:text-gray-600 bg-gray-50 rounded-xl">
+                ログアウト
+            </button>
+        </form>
+    </div>
+</header>
+
+</html>

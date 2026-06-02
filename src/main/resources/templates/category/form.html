@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- Thymeleafの名前空間を宣言する -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<!--
+  共通headフラグメントを呼び出す
+  isEdit が true なら「カテゴリー編集」、false なら「カテゴリー登録」をタイトルにする
+-->
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'カテゴリー編集' : 'カテゴリー登録')}"></head>
+
+<!-- 本文 -->
+<body class="min-h-screen bg-gray-50 text-gray-800 font-sans pb-24">
+
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm sticky top-0 z-10 border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-lg font-bold text-gray-800" th:text="${isEdit} ? 'カテゴリー編集' : 'カテゴリー登録'">カテゴリー登録</h1>
+            <!-- 一覧へ戻る -->
+            <a th:href="@{/categories}" class="text-sm font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100">一覧に戻る</a>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ。色パレットを th:with でこの画面用に定義しておく -->
+    <main class="max-w-xl mx-auto p-4"
+          th:with="palette=${ {'#f87171','#f97316','#fbbf24','#34d399','#2dd4bf','#38bdf8','#818cf8','#a78bfa','#f472b6','#9ca3af','#4ade80','#60a5fa'} }">
+
+        <!--
+          カテゴリー登録／編集フォーム
+          - th:action は
+              isEdit=true  → POST /categories/{id}/edit
+              isEdit=false → POST /categories
+          - th:object は新規・編集とも同じ "categoryForm"
+        -->
+        <form th:action="${isEdit} ? @{/categories/{id}/edit(id=${categoryForm.id})} : @{/categories}"
+              th:object="${categoryForm}" method="post"
+              class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6">
+
+            <!-- フォーム全体エラー（重複など）を表示する -->
+            <div th:replace="~{fragments/layout :: globalErrors}"></div>
+
+            <!-- 編集時のみ id を hidden で送る -->
+            <input type="hidden" th:if="${isEdit}" th:field="*{id}">
+            <!-- 種類（支出/収入）は hidden で送る（一覧の「＋追加」リンクで決まる。編集では既存値を保持） -->
+            <input type="hidden" th:field="*{type}">
+
+            <!-- カテゴリー名 -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">カテゴリー名</label>
+                <!-- th:field="*{label}" は CategoryForm.label と紐づく -->
+                <input type="text" th:field="*{label}" placeholder="例: 食費"
+                       class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold">
+                <div th:replace="~{fragments/layout :: fieldError('label')}"></div>
+            </div>
+
+            <!-- 色の選択（パレットから1つ選ぶ。ラジオボタンを丸ボタン風に並べる） -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">カラー</label>
+                <div class="flex flex-wrap gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <!-- palette の各色をループしてラジオにする -->
+                    <label th:each="color : ${palette}" class="cursor-pointer">
+                        <!-- 実体のラジオは隠し、選択中だけ枠を付ける（peer-checked） -->
+                        <input type="radio" th:field="*{color}" th:value="${color}" class="peer sr-only">
+                        <span class="w-8 h-8 rounded-full inline-block ring-offset-2 peer-checked:ring-2 peer-checked:ring-blue-400"
+                              th:style="'background-color:' + ${color}"></span>
+                    </label>
+                </div>
+                <div th:replace="~{fragments/layout :: fieldError('color')}"></div>
+            </div>
+
+            <!-- ボタン群 -->
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <!-- キャンセル -->
+                <a th:href="@{/categories}" class="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">キャンセル</a>
+                <!-- 送信（編集なら「更新する」、新規なら「登録する」） -->
+                <button type="submit"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-md"
+                        th:text="${isEdit} ? '更新する' : '登録する'">登録する</button>
+            </div>
+        </form>
+    </main>
+
+    <!-- 下部ナビ（現在地は settings） -->
+    <nav th:replace="~{fragments/layout :: bottomNav('settings')}"></nav>
+</body>
+</html>
