@@ -71,26 +71,29 @@
             <!-- ホーム（ダッシュボード）へのリンク。active が 'dashboard' のとき青くする -->
             <a th:href="@{/dashboard}"
                th:classappend="${active == 'dashboard'} ? 'text-blue-600' : 'text-gray-400'"
-               class="flex flex-col items-center justify-center w-full h-full gap-1">
+               class="flex flex-col items-center justify-center flex-1 h-full gap-1">
                 <span class="text-xl">🏠</span>
                 <span class="text-[10px] font-bold">ホーム</span>
             </a>
             <!-- 履歴一覧へのリンク -->
             <a th:href="@{/transactions}"
                th:classappend="${active == 'list'} ? 'text-blue-600' : 'text-gray-400'"
-               class="flex flex-col items-center justify-center w-full h-full gap-1">
+               class="flex flex-col items-center justify-center flex-1 h-full gap-1">
                 <span class="text-xl">📋</span>
                 <span class="text-[10px] font-bold">履歴</span>
             </a>
-            <!-- 新規記録へのリンク（中央の大きな＋ボタン） -->
-            <a th:href="@{/transactions/new}"
-               class="flex items-center justify-center -mt-6 w-14 h-14 rounded-full bg-blue-600 text-white text-3xl shadow-lg shadow-blue-500/30">
-                ＋
-            </a>
+            <!-- 新規記録への＋ボタン。1/4スロットの中で円を中央寄せし、少し上に持ち上げる -->
+            <!-- shrink-0 を付けて、フレックスで横につぶれて縦長ピル状にならないようにする -->
+            <div class="flex-1 flex justify-center">
+                <a th:href="@{/transactions/new}"
+                   class="flex shrink-0 items-center justify-center -mt-6 w-14 h-14 rounded-full bg-blue-600 text-white text-3xl shadow-lg shadow-blue-500/30">
+                    ＋
+                </a>
+            </div>
             <!-- カテゴリー設定へのリンク -->
             <a th:href="@{/categories}"
                th:classappend="${active == 'settings'} ? 'text-blue-600' : 'text-gray-400'"
-               class="flex flex-col items-center justify-center w-full h-full gap-1">
+               class="flex flex-col items-center justify-center flex-1 h-full gap-1">
                 <span class="text-xl">⚙️</span>
                 <span class="text-[10px] font-bold">設定</span>
             </a>

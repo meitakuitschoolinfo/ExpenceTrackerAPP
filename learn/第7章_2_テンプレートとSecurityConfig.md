@@ -158,12 +158,57 @@ resources/application.properties … DB接続 / JPA / ポート
 完成ファイル：[dashboard.html](../src/main/resources/templates/dashboard.html)
 
 - 残高カード：`summary.balance` が0以上なら青、マイナスなら赤（`th:classappend`）
-- 支出内訳：`breakdown`（`CategorySlice` のリスト）を `th:each` で横棒に。幅＝`percentage%`、色＝カテゴリー色
-- 6ヶ月推移：`trend` を `th:each`。棒の幅＝`金額 ÷ trendMax × 100`（Controllerで計算した最大値で正規化）
+- 支出内訳：**円グラフ（ドーナツ）**。`breakdown` を Chart.js に渡して描画（ラベル=label / 値=amount / 色=color）
+- 6ヶ月推移：**折れ線グラフ**。`trend` を Chart.js に渡し、収入(緑)・支出(赤)の2系列で描画
 - 月の選択：`<select onchange="this.form.submit()">` で、選んだ瞬間に `?month=` 付きで再読込
 
-> 💡 React の Recharts（円・棒グラフ）は、サーバーサイドでは **CSSの横棒** で素朴に再現。
-> 　 集計値そのものは Service が計算済みなので、画面は「並べて表示するだけ」。
+### ★グラフ描画★ サーバーのデータを JavaScript に渡す（`th:inline="javascript"`）
+
+React 版の Recharts（円グラフ・グラフ）を、Spring Boot 版では **Chart.js（CDN）** で再現します。
+ポイントは「**Service が計算した集計値（DTO）を、画面の JavaScript に渡す**」こと。
+
+```html
+<!-- Chart.js 本体を読み込む -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+    // /*[[${...}]]*/ の部分が Thymeleaf によって JSON に変換される
+    const breakdown = /*[[${breakdown}]]*/ [];   // [{label,color,amount,percentage}, ...]
+    const trend     = /*[[${trend}]]*/ [];        // [{label,income,expense}, ...]
+
+    // 円グラフ（ドーナツ）
+    new Chart(document.getElementById('breakdownChart'), {
+        type: 'doughnut',
+        data: {
+            labels: breakdown.map(s => s.label),
+            datasets: [{ data: breakdown.map(s => s.amount),
+                         backgroundColor: breakdown.map(s => s.color) }]
+        }
+    });
+    // 折れ線グラフ（収入・支出の2系列）
+    new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trend.map(p => p.label),
+            datasets: [
+                { label: '収入', data: trend.map(p => p.income), borderColor: '#34d399' },
+                { label: '支出', data: trend.map(p => p.expense), borderColor: '#f87171' }
+            ]
+        }
+    });
+/*]]>*/
+</script>
+```
+
+| ポイント | 内容 |
+| -------- | ---- |
+| `th:inline="javascript"` | スクリプト内で `/*[[${...}]]*/` を使うと、modelの値が **JSON** に変換される |
+| DTOのリスト | `breakdown`(List&lt;CategorySlice&gt;) / `trend`(List&lt;MonthlyTrendPoint&gt;) が getter 経由でJSON配列になる |
+| 役割分担 | **集計は Service、整形JSONはThymeleaf、描画はChart.js**。サーバーは数値を渡すだけ |
+| 空データ | 内訳が0件のときは `th:if` で `<canvas>` を出さず「支出データがありません」を表示する（JS側も要素の有無を確認） |
+
+> 💡 縦軸の最大値（スケール）は **Chart.js が自動計算** するので、サーバー側で最大値を求める必要はない。
+> 　 以前の「CSS横棒＋手計算の幅」より、グラフ専用ライブラリに任せる方がシンプルで正確。
 
 ---
 

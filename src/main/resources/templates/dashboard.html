@@ -50,61 +50,25 @@
             </div>
         </div>
 
-        <!-- 支出の内訳（カテゴリー別の横棒） -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold mb-4 text-gray-700">🥧 支出の内訳</h3>
-            <!-- データが無いときのメッセージ（breakdown が空のとき） -->
-            <div th:if="${breakdown.isEmpty()}" class="text-center text-gray-400 text-sm py-8">
-                支出データがありません
-            </div>
-            <!-- カテゴリーごとに1行ずつ表示する -->
-            <div th:unless="${breakdown.isEmpty()}" class="space-y-3">
-                <div th:each="slice : ${breakdown}">
-                    <!-- ラベル行：色の丸・名前・金額・割合 -->
-                    <div class="flex items-center justify-between text-sm mb-1">
-                        <span class="flex items-center gap-2 font-medium text-gray-700">
-                            <!-- カテゴリー色の丸（背景色は style にインラインで入れる） -->
-                            <span class="w-3 h-3 rounded-full inline-block"
-                                  th:style="'background-color:' + ${slice.color}"></span>
-                            <span th:text="${slice.label}">食費</span>
-                        </span>
-                        <span class="font-bold text-gray-800">
-                            <span th:text="'¥' + ${#numbers.formatInteger(slice.amount, 0, 'COMMA')}">¥0</span>
-                            <span class="text-gray-400 text-xs" th:text="'(' + ${slice.percentage} + '%)'">(0%)</span>
-                        </span>
-                    </div>
-                    <!-- 横棒：幅(width)を割合(%)にし、色をカテゴリー色にする -->
-                    <div class="w-full bg-gray-100 rounded-full h-2.5">
-                        <div class="h-2.5 rounded-full"
-                             th:style="'width:' + ${slice.percentage} + '%; background-color:' + ${slice.color}"></div>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 支出の内訳（円グラフ＝ドーナツ） -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold mb-4 text-gray-700">🥧 支出の内訳</h3>
+                <!-- データが無いときのメッセージ（breakdown が空のとき） -->
+                <div th:if="${breakdown.isEmpty()}" class="h-64 flex items-center justify-center text-gray-400 text-sm">
+                    支出データがありません
+                </div>
+                <!-- データがあるときだけ canvas を出す（Chart.jsが描画する） -->
+                <div th:unless="${breakdown.isEmpty()}" class="h-64">
+                    <canvas id="breakdownChart"></canvas>
                 </div>
             </div>
-        </div>
 
-        <!-- 直近6ヶ月の推移 -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-bold mb-4 text-gray-700">📈 直近6ヶ月の推移</h3>
-            <div class="space-y-3">
-                <!-- 月ごとに1行ずつ。収入バー(緑)と支出バー(赤)を並べる -->
-                <div th:each="p : ${trend}" class="text-sm">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span th:text="${p.label}">6月</span>
-                        <span>
-                            <span class="text-emerald-600" th:text="'収 ¥' + ${#numbers.formatInteger(p.income, 0, 'COMMA')}">収 ¥0</span>
-                            <span class="text-red-500 ml-2" th:text="'支 ¥' + ${#numbers.formatInteger(p.expense, 0, 'COMMA')}">支 ¥0</span>
-                        </span>
-                    </div>
-                    <!-- 収入バー：幅 = 収入 ÷ trendMax × 100（%） -->
-                    <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
-                        <div class="h-2 rounded-full bg-emerald-400"
-                             th:style="'width:' + ${p.income * 100 / trendMax} + '%'"></div>
-                    </div>
-                    <!-- 支出バー -->
-                    <div class="w-full bg-gray-100 rounded-full h-2">
-                        <div class="h-2 rounded-full bg-red-400"
-                             th:style="'width:' + ${p.expense * 100 / trendMax} + '%'"></div>
-                    </div>
+            <!-- 直近6ヶ月の推移（折れ線グラフ） -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-lg font-bold mb-4 text-gray-700">📈 直近6ヶ月の推移</h3>
+                <div class="h-64">
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
@@ -112,5 +76,122 @@
 
     <!-- 下部ナビ（現在地は dashboard） -->
     <nav th:replace="~{fragments/layout :: bottomNav('dashboard')}"></nav>
+
+    <!-- Chart.js 本体をCDNから読み込む（このダッシュボード画面でだけ使う） -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <!--/*
+      サーバー（Controller）が渡した集計データを JavaScript の変数に流し込み、
+      Chart.js でグラフを描画する。
+      th:inline="javascript" を付けると、下の const で書いた式が JSON に変換される。
+      なおこの説明文はパーサーレベルコメントにしている。通常の HTML コメントだと、
+      中に書いたインライン式まで Thymeleaf が評価しようとして落ちるため。
+    */-->
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+        // 支出の内訳（CategorySlice のリスト → [{label,color,amount,percentage}, ...] に変換される）
+        const breakdown = /*[[${breakdown}]]*/ [];
+        // 直近6ヶ月の推移（MonthlyTrendPoint のリスト → [{label,income,expense}, ...]）
+        const trend = /*[[${trend}]]*/ [];
+
+        // 金額を「¥1,234」の形に整える小さな関数（ツールチップで使う）
+        const yen = (v) => '¥' + Number(v).toLocaleString('ja-JP');
+
+        // ① 支出の内訳：円グラフ（ドーナツ型）
+        const pieEl = document.getElementById('breakdownChart');
+        // データが無いときは canvas 自体が存在しないので、要素がある時だけ描画する
+        if (pieEl) {
+            new Chart(pieEl, {
+                // 'doughnut' は中央が空いた円グラフ（'pie' にすると塗りつぶしの円になる）
+                type: 'doughnut',
+                data: {
+                    // 各カテゴリー名をラベルにする
+                    labels: breakdown.map(s => s.label),
+                    datasets: [{
+                        // 金額を扇の大きさにする
+                        data: breakdown.map(s => s.amount),
+                        // 扇の色を各カテゴリーの色にする
+                        backgroundColor: breakdown.map(s => s.color),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    // 親要素(h-64)の高さに合わせて伸縮させる
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // ドーナツの穴の大きさ
+                    cutout: '60%',
+                    plugins: {
+                        // 凡例を下に表示する
+                        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                        // ツールチップに「カテゴリー名: ¥金額 (割合%)」を出す
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const slice = breakdown[ctx.dataIndex];
+                                    return slice.label + ': ' + yen(slice.amount) + ' (' + slice.percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ② 直近6ヶ月の推移：折れ線グラフ（収入＝緑、支出＝赤）
+        const lineEl = document.getElementById('trendChart');
+        if (lineEl) {
+            new Chart(lineEl, {
+                type: 'line',
+                data: {
+                    // 月ラベル（例：6月）を横軸にする
+                    labels: trend.map(p => p.label),
+                    datasets: [
+                        {
+                            label: '収入',
+                            data: trend.map(p => p.income),
+                            borderColor: '#34d399',
+                            backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                            // 線を少し曲線にする
+                            tension: 0.35,
+                            // 線の下を薄く塗る
+                            fill: true,
+                            pointRadius: 3
+                        },
+                        {
+                            label: '支出',
+                            data: trend.map(p => p.expense),
+                            borderColor: '#f87171',
+                            backgroundColor: 'rgba(248, 113, 113, 0.15)',
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                // ツールチップの金額を「¥1,234」表記にする
+                                label: (ctx) => ctx.dataset.label + ': ' + yen(ctx.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        // 縦軸は0から始め、目盛りを「¥1,234」表記にする
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (v) => yen(v) }
+                        }
+                    }
+                }
+            });
+        }
+    /*]]>*/
+    </script>
 </body>
 </html>

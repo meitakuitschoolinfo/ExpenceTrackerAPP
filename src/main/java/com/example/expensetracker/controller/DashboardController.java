@@ -64,23 +64,8 @@ public class DashboardController {
         model.addAttribute("summary", transactionService.summarize(user, selected));
         // その月の支出内訳（カテゴリー別・割合付き）を渡す
         model.addAttribute("breakdown", transactionService.expenseBreakdown(user, selected));
-        // 直近6ヶ月の推移を計算する
-        var trend = transactionService.recentTrend(user, selected);
-        // 推移を渡す
-        model.addAttribute("trend", trend);
-        // 棒グラフの長さを正規化するための「6ヶ月で最も大きい金額」を計算して渡す
-        //   （収入・支出のどちらか大きい方を全月で見て、その最大値を基準に棒の幅(%)を決める）
-        int trendMax = 1; // 0除算を避けるため最小1から始める
-        for (var p : trend) {
-            // その月の収入と支出のうち大きい方を取り出す
-            int monthMax = Math.max(p.getIncome(), p.getExpense());
-            // これまでの最大より大きければ更新する
-            if (monthMax > trendMax) {
-                trendMax = monthMax;
-            }
-        }
-        // 計算した最大値を渡す
-        model.addAttribute("trendMax", trendMax);
+        // 直近6ヶ月の推移を渡す（折れ線グラフ用。縦軸のスケーリングは Chart.js が自動で行う）
+        model.addAttribute("trend", transactionService.recentTrend(user, selected));
         // テンプレート templates/dashboard.html を返す
         return "dashboard";
     }
