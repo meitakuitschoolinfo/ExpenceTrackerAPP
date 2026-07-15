@@ -1,11 +1,11 @@
-# 📘 第7章（前半）
+# 📘 第8章（前半）
 
 ## Controller を作る
 ― HTTPの入口。今までのピースを「URLから呼べる」状態にする ―
 
 ---
 
-## 🎯 7-1-1. この章のゴール
+## 🎯 8-1-1. この章のゴール
 
 ✔ Controller の役割を **一文で説明できる**
 ✔ `@GetMapping` / `@PostMapping` / `@PathVariable` / `@RequestParam` を使い分けられる
@@ -17,7 +17,7 @@
 
 ---
 
-## 🧩 7-1-2. Controller とは
+## 🧩 8-1-2. Controller とは
 
 > Controller ＝ **HTTPリクエストを受け取り、Serviceを呼び、画面を返す** クラス
 
@@ -32,7 +32,7 @@
 
 ---
 
-## 🔄 7-1-3. なぜ Service の次に Controller なのか
+## 🔄 8-1-3. なぜ Service の次に Controller なのか
 
 Controller は **最も上の層** で、Service / Form / Entity すべてに依存する。
 → 全部完成してから書くと import で詰まらない。
@@ -50,7 +50,7 @@ Controller は **最も上の層** で、Service / Form / Entity すべてに依
 
 ---
 
-## 🧱 7-1-4. 共通の書き方
+## 🧱 8-1-4. 共通の書き方
 
 ```java
 @Controller
@@ -71,7 +71,7 @@ public class XxxController {
 
 ---
 
-## 🆔 7-1-5. URLからの値の受け取り
+## 🆔 8-1-5. URLからの値の受け取り
 
 | 方法              | 例                                              | 用途                 |
 | ----------------- | ----------------------------------------------- | -------------------- |
@@ -83,7 +83,7 @@ public class XxxController {
 
 ---
 
-## ✅ 7-1-6. ★最重要★ バリデーション → 再描画
+## ✅ 8-1-6. ★最重要★ バリデーション → 再描画
 
 ```java
 @PostMapping("/transactions")
@@ -136,7 +136,7 @@ public String register(@Valid TransactionForm form, Model model, BindingResult b
 
 ---
 
-## 🔁 7-1-7. ★超重要★ PRG パターン
+## 🔁 8-1-7. ★超重要★ PRG パターン
 
 > POST で処理した後は、**必ずリダイレクト**してから GET で画面を表示する
 
@@ -150,7 +150,7 @@ POST /transactions → 登録 → return "redirect:/transactions" → GET /trans
 
 ---
 
-## 🔐 7-1-8. ★最重要★ ログイン中ユーザーの取得
+## 🔐 8-1-8. ★最重要★ ログイン中ユーザーの取得
 
 ```java
 @GetMapping("/dashboard")
@@ -167,11 +167,11 @@ public String dashboard(@AuthenticationPrincipal UserDetails principal, Model mo
 - `principal.getUsername()` で email を得て、`userService.findByEmail(...)` で本人を取り直す
 
 👉 **本人特定は URL ではなく認証情報から**。これがセキュリティの基本。
-　 さらに Service 側の **持ち主チェック**（第6章）と合わせて二重で守る。
+　 さらに Service 側の **持ち主チェック**（第7章）と合わせて二重で守る。
 
 ---
 
-## ⛏ 7-1-9. 個別Controllerの見どころ
+## ⛏ 8-1-9. 個別Controllerの見どころ
 
 ### HomeController
 ```java
@@ -181,7 +181,7 @@ public String index() { return "redirect:/dashboard"; }
 未ログインなら Security が `/login` へ飛ばす。
 
 ### LoginController
-- **GETだけ書く**。POST /login は Spring Security が直接受ける（第7章後半）
+- **GETだけ書く**。POST /login は Spring Security が直接受ける（第8章後半）
 - 自分で POST /login を書くと Security と衝突する
 
 ### TransactionController（記録）
@@ -196,7 +196,7 @@ public String index() { return "redirect:/dashboard"; }
 
 ---
 
-## ❌ 7-1-10. 初心者がやりがちなNG
+## ❌ 8-1-10. 初心者がやりがちなNG
 
 | NG                                          | 何が起きる？                  |
 | ------------------------------------------- | ----------------------------- |
@@ -210,7 +210,7 @@ public String index() { return "redirect:/dashboard"; }
 
 ---
 
-## 📝 7-1-11. ソースを書くときの順番
+## 📝 8-1-11. ソースを書くときの順番
 
 1. **HomeController**（最小形）
 2. **LoginController**（GETだけ）
@@ -223,7 +223,7 @@ public String index() { return "redirect:/dashboard"; }
 
 ---
 
-## ✨ 7-1-12. ソースを書くときのポイント
+## ✨ 8-1-12. ソースを書くときのポイント
 
 - **Controllerは薄く**。ロジックはService
 - **`BindingResult` は `@Valid` の直後**
@@ -235,7 +235,7 @@ public String index() { return "redirect:/dashboard"; }
 
 ---
 
-## ✅ 7-1-13. 第7章（前半）まとめ
+## ✅ 8-1-13. 第8章（前半）まとめ
 
 ✔ Controller ＝ HTTP受付→Service呼び出し→画面返却の薄い層
 ✔ 値の受け取り：`@PathVariable` / `@RequestParam` / Form自動バインド（enumも自動変換）
@@ -247,5 +247,5 @@ public String index() { return "redirect:/dashboard"; }
 
 ## 🔜 次の章
 
-**第7章（後半）：テンプレートと SecurityConfig**
+**第8章（後半）：テンプレートと SecurityConfig**
 ― Thymeleafで画面を作り、認可・ログイン・CSRFを設定して**動くアプリ**にする ―

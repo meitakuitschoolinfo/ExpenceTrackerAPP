@@ -109,7 +109,7 @@ Optional<User> findByEmail(String email);
 - `Optional` なら「中身を取り出す処理」をコンパイラが促す
 
 ```java
-// Service での使い方（第6章）
+// Service での使い方（第7章）
 User user = userRepository.findByEmail(email)
     .orElseThrow(() -> new UsernameNotFoundException("..."));
 ```

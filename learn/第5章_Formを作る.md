@@ -30,7 +30,7 @@
 ## 🔄 5-3. なぜ Repository の次に Form なのか
 
 ```text
-[ Service ]（第6章）
+[ Service ]（第7章）
    ├── Repository  ← 第4章で完成
    └── Form        ← ★第5章でここ
 ```
@@ -101,7 +101,7 @@ public class LoginForm {
 }
 ```
 
-- ログインは「空欄ガード」程度で十分。**実際の認証は Spring Security の仕事**（第7章）
+- ログインは「空欄ガード」程度で十分。**実際の認証は Spring Security の仕事**（第8章）
 - POST /login は Security が直接受けるので、この Form は主に **GET時の画面バインド** 用
 
 ---
@@ -127,7 +127,7 @@ public class UserRegisterForm {
 ### 重複チェックはここでやらない
 
 - `@Email` などは **1フィールド単独で完結するチェック** が得意
-- 「DBに同じemailがあるか？」は DB問い合わせが必要 → **Service の仕事**（第6章）
+- 「DBに同じemailがあるか？」は DB問い合わせが必要 → **Service の仕事**（第7章）
 
 ---
 
@@ -147,7 +147,7 @@ public class CategoryForm {
 ### 1クラスで登録/編集を兼ねる
 
 - 新規 → `id == null`、編集 → `id != null`
-- Controller 側で id の有無を見て分岐する（第7章）
+- Controller 側で id の有無を見て分岐する（第8章）
 - フィールドが少なく、登録と編集でチェックが同じなので **1クラスでOK**
 
 ### `type` は enum なので `@NotBlank` ではなく `@NotNull`
@@ -179,7 +179,7 @@ public class TransactionForm {
 | バリデーション          | `@NotNull` で完結                | 複雑                          |
 | Service側で詰め替え     | `categoryRepository.findById()`  | 不要                          |
 
-👉 **Form は ID（Long）だけ持つ。Service が Repository を使って Category に変換する**（第6章）。
+👉 **Form は ID（Long）だけ持つ。Service が Repository を使って Category に変換する**（第7章）。
 　 これが Spring Boot の鉄板パターン。
 
 ### `@DateTimeFormat(iso = ISO.DATE)`
@@ -244,5 +244,5 @@ public class TransactionForm {
 
 ## 🔜 次の章
 
-**第6章：Service を作る**
-― 業務ロジックの中心。**パスワードのハッシュ化**・集計・詰め替えが全部つながる ―
+**第6章：DTO を作る**
+― Form が「画面の入力箱」なら、DTO は **「画面への出力箱」**。集計結果を画面へ運ぶ箱を先に用意する ―

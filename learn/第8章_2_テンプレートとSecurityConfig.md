@@ -1,11 +1,11 @@
-# 📘 第7章（後半）
+# 📘 第8章（後半）
 
 ## テンプレートと SecurityConfig
 ― Thymeleaf で画面を作り、認可・ログイン・CSRF を設定して**動くアプリ**にする ―
 
 ---
 
-## 🎯 7-2-1. この章のゴール
+## 🎯 8-2-1. この章のゴール
 
 ✔ Thymeleaf の **`th:each` / `th:if` / `th:field` / `th:replace`** が読める／書ける
 ✔ 共通部品（head・フラッシュ・下部ナビ）を **フラグメント** にまとめられる
@@ -17,7 +17,7 @@
 
 ---
 
-## 🧩 7-2-2. 今回作るもの
+## 🧩 8-2-2. 今回作るもの
 
 ```text
 templates/
@@ -36,7 +36,7 @@ resources/application.properties … DB接続 / JPA / ポート
 
 ---
 
-## 🧱 7-2-3. ステップ① 共通フラグメント（layout.html）
+## 🧱 8-2-3. ステップ① 共通フラグメント（layout.html）
 
 完成ファイル：[layout.html](../src/main/resources/templates/fragments/layout.html)
 
@@ -66,7 +66,7 @@ resources/application.properties … DB接続 / JPA / ポート
 
 ---
 
-## 🧱 7-2-4. ステップ② フォーム画面（`th:field` の仕組み）
+## 🧱 8-2-4. ステップ② フォーム画面（`th:field` の仕組み）
 
 完成ファイル：[login.html](../src/main/resources/templates/auth/login.html) / [register.html](../src/main/resources/templates/auth/register.html) / [transaction/form.html](../src/main/resources/templates/transaction/form.html)
 
@@ -100,7 +100,7 @@ resources/application.properties … DB接続 / JPA / ポート
 
 ---
 
-## 🧱 7-2-5. ステップ③ 一覧画面（`th:each` とLAZY）
+## 🧱 8-2-5. ステップ③ 一覧画面（`th:each` とLAZY）
 
 完成ファイル：[transaction/list.html](../src/main/resources/templates/transaction/list.html)
 
@@ -130,7 +130,7 @@ resources/application.properties … DB接続 / JPA / ポート
 
 ---
 
-## 🧱 7-2-6. ステップ④ ★削除は POST フォーム＋CSRF★
+## 🧱 8-2-6. ステップ④ ★削除は POST フォーム＋CSRF★
 
 完成ファイル：[transaction/list.html](../src/main/resources/templates/transaction/list.html) / [category/list.html](../src/main/resources/templates/category/list.html)
 
@@ -153,7 +153,7 @@ resources/application.properties … DB接続 / JPA / ポート
 
 ---
 
-## 🧱 7-2-7. ステップ⑤ ダッシュボード（集計の表示）
+## 🧱 8-2-7. ステップ⑤ ダッシュボード（集計の表示）
 
 完成ファイル：[dashboard.html](../src/main/resources/templates/dashboard.html)
 
@@ -212,7 +212,7 @@ React 版の Recharts（円グラフ・グラフ）を、Spring Boot 版では *
 
 ---
 
-## 🔐 7-2-8. ステップ⑥ ★最重要★ SecurityConfig 本格化
+## 🔐 8-2-8. ステップ⑥ ★最重要★ SecurityConfig 本格化
 
 完成ファイル：[SecurityConfig.java](../src/main/java/com/example/expensetracker/config/SecurityConfig.java)
 
@@ -263,7 +263,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 ### `UserDetailsService` は自動接続
 
-- `UserService implements UserDetailsService`（第6章）を Spring が **自動検出**
+- `UserService implements UserDetailsService`（第7章）を Spring が **自動検出**
 - `PasswordEncoder` Bean と合わせて認証の仕組みが自動で組み上がる
 - → SecurityConfig に `.userDetailsService(...)` を明示しなくても繋がる
 
@@ -274,7 +274,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 ---
 
-## ⚙ 7-2-9. ステップ⑦ application.properties
+## ⚙ 8-2-9. ステップ⑦ application.properties
 
 完成ファイル：[application.properties](../src/main/resources/application.properties)
 
@@ -307,7 +307,7 @@ CREATE DATABASE expense_tracker;
 
 ---
 
-## ▶ 7-2-10. 起動と動作確認
+## ▶ 8-2-10. 起動と動作確認
 
 ```bash
 # Windows
@@ -328,7 +328,7 @@ mvnw.cmd spring-boot:run
 
 ---
 
-## ❌ 7-2-11. よくあるつまづき
+## ❌ 8-2-11. よくあるつまづき
 
 | 症状                                        | 原因と対処                                          |
 | ------------------------------------------- | --------------------------------------------------- |
@@ -342,7 +342,7 @@ mvnw.cmd spring-boot:run
 
 ---
 
-## 📝 7-2-12. ソースを書くときの順番
+## 📝 8-2-12. ソースを書くときの順番
 
 1. **layout.html**（共通フラグメント）を先に
 2. **auth/login・register**（入口）
@@ -355,7 +355,7 @@ mvnw.cmd spring-boot:run
 
 ---
 
-## ✨ 7-2-13. ソースを書くときのポイント
+## ✨ 8-2-13. ソースを書くときのポイント
 
 - **モデル属性キーとテンプレートを完全一致** させる
 - **削除は POST フォーム＋confirm**、`th:action` で CSRF 自動挿入
@@ -366,19 +366,19 @@ mvnw.cmd spring-boot:run
 
 ---
 
-## ✅ 7-2-14. 全章まとめ（完成）
+## ✅ 8-2-14. 全章まとめ（完成）
 
 | 層             | クラス／ファイル                                              | 章   |
 | -------------- | ------------------------------------------------------------ | ---- |
 | Entity         | `TransactionType` / `User` / `Category` / `Transaction`      | 1〜3 |
 | Repository     | `UserRepository` / `CategoryRepository` / `TransactionRepository` | 4 |
 | Form           | `LoginForm` / `UserRegisterForm` / `CategoryForm` / `TransactionForm` | 5 |
-| Service        | `UserService`（★ハッシュ化★）/ `CategoryService` / `TransactionService` | 6 |
 | DTO            | `MonthlySummary` / `CategorySlice` / `MonthlyTrendPoint`      | 6 |
-| Exception      | `ResourceNotFoundException`                                  | 6 |
-| Controller     | Home / Login / UserRegister / Dashboard / Transaction / Category | 7-1 |
-| Template       | layout / auth / dashboard / transaction / category           | 7-2 |
-| Config         | `SecurityConfig` / `application.properties`                  | 6・7-2 |
+| Service        | `UserService`（★ハッシュ化★）/ `CategoryService` / `TransactionService` | 7 |
+| Exception      | `ResourceNotFoundException`                                  | 7 |
+| Controller     | Home / Login / UserRegister / Dashboard / Transaction / Category | 8-1 |
+| Template       | layout / auth / dashboard / transaction / category           | 8-2 |
+| Config         | `SecurityConfig` / `application.properties`                  | 7・8-2 |
 
 これで「**パスワードをハッシュ化し、層を分けて作った家計簿アプリ**」が動く形になりました。
 
